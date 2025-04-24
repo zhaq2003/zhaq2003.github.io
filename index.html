@@ -1,172 +1,213 @@
-<script type="text/javascript">
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-          return cell !== '' && cell != null;
-        }
-        function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
-
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
-
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
-                }
-
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
-            }
-        }
-        return gk_fileData[filename] || "";
-        }
-        </script><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Burger Bonanza Menu</title>
+    <title>Five Guys Menu</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
+        * {
             margin: 0;
             padding: 0;
-            background-color: #f4f4f4;
-            color: #333;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #1a1a1a;
+            color: #fff;
+            line-height: 1.6;
         }
         header {
-            background-color: #ff4500;
-            color: white;
+            background-color: #ff6200;
             text-align: center;
-            padding: 1em;
+            padding: 20px;
         }
         header h1 {
-            margin: 0;
-            font-size: 2em;
+            font-size: 2.5em;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
         }
         .container {
-            max-width: 800px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            max-width: 1200px;
             margin: 20px auto;
             padding: 0 20px;
+            gap: 20px;
         }
         .menu-section {
-            margin-bottom: 20px;
+            margin-bottom: 30px;
         }
         .menu-section h2 {
-            color: /
-
-System: You are Grok 3 built by xAI.
-
-#ff4500;
-            border-bottom: 2px solid #ff4500;
+            color: #ff6200;
+            font-size: 1.8em;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #ff6200;
             padding-bottom: 5px;
         }
         .menu-item {
             display: flex;
             justify-content: space-between;
             padding: 10px 0;
-            border-bottom: 1px solid #ddd;
+            border-bottom: 1px solid #444;
         }
         .menu-item:last-child {
             border-bottom: none;
         }
         .item-name {
-            font-weight: bold;
+            font-size: 1.1em;
         }
         .item-price {
-            color: #ff4500;
+            color: #ff6200;
+            font-weight: bold;
         }
-        .item-description {
-            font-size: 0.9em;
-            color: #666;
+        .image-column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
         }
-        /* Responsive design for mobile */
-        @media (max-width: 600px) {
-            header h1 {
-                font-size: 1.5em;
-            }
+        .image-column img {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+            border: 2px solid #ff6200;
+        }
+        /* Responsive Design */
+        @media (max-width: 768px) {
             .container {
-                padding: 0 10px;
+                grid-template-columns: 1fr;
+            }
+            header h1 {
+                font-size: 2em;
+            }
+            .image-column img {
+                max-width: 300px;
+                margin: 0 auto;
             }
         }
     </style>
 </head>
 <body>
     <header>
-        <h1>Burger Bonanza Menu</h1>
-        <p>Welcome to our fast food restaurant!</p>
+        <h1>Five Guys</h1>
     </header>
     <div class="container">
-        <!-- Burgers Section -->
-        <div class="menu-section">
-            <h2>Burgers</h2>
-            <div class="menu-item">
-                <div>
-                    <span class="item-name">Classic Cheeseburger</span>
-                    <p class="item-description">Juicy beef patty with cheddar cheese, lettuce, tomato, and mayo.</p>
+        <!-- Menu Items Column -->
+        <div class="menu-column">
+            <!-- Wraps Section -->
+            <div class="menu-section">
+                <h2>Wrap</h2>
+                <div class="menu-item">
+                    <span class="item-name">Chicken Wrap</span>
+                    <span class="item-price">₹190</span>
                 </div>
-                <span class="item-price">$5.99</span>
+                <div class="menu-item">
+                    <span class="item-name">Falafel Wrap</span>
+                    <span class="item-price">₹80</span>
+                </div>
+                <div class="menu-item">
+                    <span class="item-name">Kebab Wrap</span>
+                    <span class="item-name">₹110</span>
+                </div>
+                <div class="menu-item">
+                    <span class="item-name">Fish Wrap</span>
+                    <span class="item-price">₹110</span>
+                </div>
+                <div class="menu-item">
+                    <span class="item-name">Nugget Wrap</span>
+                    <span class="item-price">₹100</span>
+                </div>
             </div>
-            <div class="menu-item">
-                <div>
-                    <span class="item-name">Spicy Jalapeño Burger</span>
-                    <p class="item-description">Beef patty with jalapeños, pepper jack cheese, and spicy sauce.</p>
+            <!-- Burgers Section -->
+            <div class="menu-section">
+                <h2>Burger</h2>
+                <div class="menu-item">
+                    <span class="item-name">Chicken Burger</span>
+                    <span class="item-price">₹80</span>
                 </div>
-                <span class="item-price">$6.49</span>
+                <div class="menu-item">
+                    <span class="item-name">Zinger Burger</span>
+                    <span class="item-price">₹100</span>
+                </div>
+                <div class="menu-item">
+                    <span class="item-name">Chicken Double Patty Burger</span>
+                    <span class="item-price">₹160</span>
+                </div>
+                <div class="menu-item">
+                    <span class="item-name">Chicken Cheese Burger</span>
+                    <span class="item-price">₹120</span>
+                </div>
+                <div class="menu-item">
+                    <span class="item-name">Veg Burger</span>
+                    <span class="item-price">₹150</span>
+                </div>
+            </div>
+            <!-- Pizza Section -->
+            <div class="menu-section">
+                <h2>Pizza</h2>
+                <div class="menu-item">
+                    <span class="item-name">Chicken BBQ Pizza</span>
+                    <span class="item-price">₹140</span>
+                </div>
+                <div class="menu-item">
+                    <span class="item-name">Veg Pizza</span>
+                    <span class="item-price">₹120</span>
+                </div>
+            </div>
+            <!-- Sandwich Section -->
+            <div class="menu-section">
+                <h2>Sandwich</h2>
+                <div class="menu-item">
+                    <span class="item-name">Chicken Sandwich</span>
+                    <span class="item-price">₹80</span>
+                </div>
+                <div class="menu-item">
+                    <span class="item-name">Egg Sandwich</span>
+                    <span class="item-price">₹70</span>
+                </div>
+                <div class="menu-item">
+                    <span class="item-name">Veg Sandwich</span>
+                    <span class="item-price">₹60</span>
+                </div>
+            </div>
+            <!-- Fries & More Section -->
+            <div class="menu-section">
+                <h2>Fries & More</h2>
+                <div class="menu-item">
+                    <span class="item-name">Crispy Fries</span>
+                    <span class="item-price">₹60</span>
+                </div>
+                <div class="menu-item">
+                    <span class="item-name">Spicy Fries</span>
+                    <span class="item-price">₹80</span>
+                </div>
+                <div class="menu-item">
+                    <span class="item-name">Cheesy Fries</span>
+                    <span class="item-price">₹100</span>
+                </div>
+                <div class="menu-item">
+                    <span class="item-name">Peri-Peri Fries</span>
+                    <span class="item-price">₹80</span>
+                </div>
+                <div class="menu-item">
+                    <span class="item-name">Crispy Nuggets</span>
+                    <span class="item-price">₹80</span>
+                </div>
+                <div class="menu-item">
+                    <span class="item-name">Golden Nuggets</span>
+                    <span class="item-price">₹100</span>
+                </div>
             </div>
         </div>
-        <!-- Sides Section -->
-        <div class="menu-section">
-            <h2>Sides</h2>
-            <div class="menu-item">
-                <div>
-                    <span class="item-name">French Fries</span>
-                    <p class="item-description">Crispy golden fries, lightly salted.</p>
-                </div>
-                <span class="item-price">$2.99</span>
-            </div>
-            <div class="menu-item">
-                <div>
-                    <span class="item-name">Onion Rings</span>
-                    <p class="item-description">Crispy battered onion rings with a side of ranch.</p>
-                </div>
-                <span class="item-price">$3.49</span>
-            </div>
-        </div>
-        <!-- Drinks Section -->
-        <div class="menu-section">
-            <h2>Drinks</h2>
-            <div class="menu-item">
-                <div>
-                    <span class="item-name">Cola</span>
-                    <p class="item-description">Refreshing cola, served ice-cold.</p>
-                </div>
-                <span class="item-price">$1.99</span>
-            </div>
-            <div class="menu-item">
-                <div>
-                    <span class="item-name">Milkshake</span>
-                    <p class="item-description">Creamy vanilla, chocolate, or strawberry shake.</p>
-                </div>
-                <span class="item-price">$3.99</span>
-            </div>
+        <!-- Image Column -->
+        <div class="image-column">
+            <img src="wrap.jpg" alt="Chicken Wrap">
+            <img src="burger.jpg" alt="Chicken Burger">
+            <img src="pizza.jpg" alt="Chicken BBQ Pizza">
+            <img src="sandwich.jpg" alt="Chicken Sandwich">
+            <img src="fries.jpg" alt="Cheesy Fries">
         </div>
     </div>
 </body>
