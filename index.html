@@ -1,0 +1,173 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Burger Bonanza Menu</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        header {
+            background-color: #ff4500;
+            color: white;
+            text-align: center;
+            padding: 1em;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 2em;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+        .menu-section {
+            margin-bottom: 20px;
+        }
+        .menu-section h2 {
+            color: /
+
+System: You are Grok 3 built by xAI.
+
+#ff4500;
+            border-bottom: 2px solid #ff4500;
+            padding-bottom: 5px;
+        }
+        .menu-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #ddd;
+        }
+        .menu-item:last-child {
+            border-bottom: none;
+        }
+        .item-name {
+            font-weight: bold;
+        }
+        .item-price {
+            color: #ff4500;
+        }
+        .item-description {
+            font-size: 0.9em;
+            color: #666;
+        }
+        /* Responsive design for mobile */
+        @media (max-width: 600px) {
+            header h1 {
+                font-size: 1.5em;
+            }
+            .container {
+                padding: 0 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Burger Bonanza Menu</h1>
+        <p>Welcome to our fast food restaurant!</p>
+    </header>
+    <div class="container">
+        <!-- Burgers Section -->
+        <div class="menu-section">
+            <h2>Burgers</h2>
+            <div class="menu-item">
+                <div>
+                    <span class="item-name">Classic Cheeseburger</span>
+                    <p class="item-description">Juicy beef patty with cheddar cheese, lettuce, tomato, and mayo.</p>
+                </div>
+                <span class="item-price">$5.99</span>
+            </div>
+            <div class="menu-item">
+                <div>
+                    <span class="item-name">Spicy Jalapeño Burger</span>
+                    <p class="item-description">Beef patty with jalapeños, pepper jack cheese, and spicy sauce.</p>
+                </div>
+                <span class="item-price">$6.49</span>
+            </div>
+        </div>
+        <!-- Sides Section -->
+        <div class="menu-section">
+            <h2>Sides</h2>
+            <div class="menu-item">
+                <div>
+                    <span class="item-name">French Fries</span>
+                    <p class="item-description">Crispy golden fries, lightly salted.</p>
+                </div>
+                <span class="item-price">$2.99</span>
+            </div>
+            <div class="menu-item">
+                <div>
+                    <span class="item-name">Onion Rings</span>
+                    <p class="item-description">Crispy battered onion rings with a side of ranch.</p>
+                </div>
+                <span class="item-price">$3.49</span>
+            </div>
+        </div>
+        <!-- Drinks Section -->
+        <div class="menu-section">
+            <h2>Drinks</h2>
+            <div class="menu-item">
+                <div>
+                    <span class="item-name">Cola</span>
+                    <p class="item-description">Refreshing cola, served ice-cold.</p>
+                </div>
+                <span class="item-price">$1.99</span>
+            </div>
+            <div class="menu-item">
+                <div>
+                    <span class="item-name">Milkshake</span>
+                    <p class="item-description">Creamy vanilla, chocolate, or strawberry shake.</p>
+                </div>
+                <span class="item-price">$3.99</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
