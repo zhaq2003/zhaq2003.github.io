@@ -1,9 +1,49 @@
-<!DOCTYPE html>
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Five Guys Menu</title>
+    <title>Five Guys Menu - Hyderabad</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -11,205 +51,611 @@
             box-sizing: border-box;
         }
         body {
-            font-family: 'Arial', sans-serif;
-            background-color: #1a1a1a;
-            color: #fff;
+            font-family: 'Poppins', sans-serif;
+            background-color: #fff;
+            color: #333;
             line-height: 1.6;
         }
+        /* Header */
         header {
             background-color: #ff6200;
-            text-align: center;
-            padding: 20px;
+            padding: 10px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        header h1 {
-            font-size: 2.5em;
-            font-weight: bold;
+        .logo {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: #fff;
             text-transform: uppercase;
-            letter-spacing: 2px;
         }
-        .container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            max-width: 1200px;
-            margin: 20px auto;
-            padding: 0 20px;
+        nav ul {
+            list-style: none;
+            display: flex;
             gap: 20px;
         }
-        .menu-section {
-            margin-bottom: 30px;
+        nav ul li a {
+            color: #fff;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1em;
         }
-        .menu-section h2 {
+        nav ul li a:hover {
+            color: #333;
+        }
+        .language-selector {
+            color: #fff;
+            font-size: 0.9em;
+        }
+        /* Hero Section */
+        .hero {
+            background: url('hero-burger.jpg') no-repeat center center/cover;
+            height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: #fff;
+            position: relative;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+        }
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+        .hero-content h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+        }
+        .hero-content .btn {
+            background-color: #ff6200;
+            color: #fff;
+            padding: 10px 20px;
+            text-decoration: none;
+            font-weight: 600;
+            border-radius: 5px;
+        }
+        .hero-content .btn:hover {
+            background-color: #e55b00;
+        }
+        /* Menu Section */
+        .menu {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        .menu h2 {
+            font-size: 2em;
+            font-weight: 700;
             color: #ff6200;
-            font-size: 1.8em;
-            font-weight: bold;
-            text-transform: uppercase;
-            margin-bottom: 10px;
-            border-bottom: 2px solid #ff6200;
-            padding-bottom: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .menu-card {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+            opacity: 0;
+            animation: fadeIn 0.5s forwards;
+        }
+        .menu-card:nth-child(2) { animation-delay: 0.1s; }
+        .menu-card:nth-child(3) { animation-delay: 0.2s; }
+        .menu-card:nth-child(4) { animation-delay: 0.3s; }
+        .menu-card:nth-child(5) { animation-delay: 0.4s; }
+        .menu-card:nth-child(6) { animation-delay: 0.5s; }
+        .menu-card:nth-child(7) { animation-delay: 0.6s; }
+        .menu-card:nth-child(8) { animation-delay: 0.7s; }
+        .menu-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .menu-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        .menu-card h3 {
+            font-size: 1.5em;
+            padding: 15px;
+            color: #333;
+        }
+        /* Menu Items */
+        .menu-items {
+            padding: 15px;
+            background-color: #f9f9f9;
         }
         .menu-item {
             display: flex;
             justify-content: space-between;
             padding: 10px 0;
-            border-bottom: 1px solid #444;
+            border-bottom: 1px solid #ddd;
         }
         .menu-item:last-child {
             border-bottom: none;
         }
         .item-name {
-            font-size: 1.1em;
+            font-weight: 600;
+        }
+        .item-description {
+            font-size: 0.9em;
+            color: #666;
         }
         .item-price {
             color: #ff6200;
-            font-weight: bold;
         }
-        .image-column {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
+        /* Back to Top Button */
+        .back-to-top {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #ff6200;
+            color: #fff;
+            padding: 10px 15px;
+            border-radius: 50%;
+            text-decoration: none;
+            font-size: 1em;
+            display: none;
+            z-index: 100;
         }
-        .image-column img {
-            width: 100%;
-            height: auto;
-            border-radius: 10px;
-            border: 2px solid #ff6200;
+        .back-to-top:hover {
+            background-color: #e55b00;
+        }
+        /* Footer */
+        footer {
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            padding: 20px;
+            margin-top: 40px;
+        }
+        footer a {
+            color: #ff6200;
+            text-decoration: none;
+        }
+        footer a:hover {
+            text-decoration: underline;
         }
         /* Responsive Design */
         @media (max-width: 768px) {
-            .container {
-                grid-template-columns: 1fr;
+            .hero {
+                height: 300px;
             }
-            header h1 {
+            .hero-content h1 {
                 font-size: 2em;
             }
-            .image-column img {
-                max-width: 300px;
-                margin: 0 auto;
+            nav ul {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .menu-grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
 </head>
 <body>
+    <!-- Header -->
     <header>
-        <h1>FIVE GUYS</h1>
-	<H3>Fries, Burger and Shakes
+        <div class="logo">Five Guys</div>
+        <nav>
+            <ul>
+                <li><a href="#wraps">Wraps</a></li>
+                <li><a href="#burgers">Burgers</a></li>
+                <li><a href="#pizzas">Pizzas</a></li>
+                <li><a href="#sandwiches">Sandwiches</a></li>
+                <li><a href="#chicken">Chicken Specials</a></li>
+                <li><a href="#fries">Fries & More</a></li>
+                <li><a href="#shakes">Shakes & Juices</a></li>
+                <li><a href="#signature-juices">Signature Juices</a></li>
+            </ul>
+        </nav>
+        <div class="language-selector">English | Telugu</div>
     </header>
-    <div class="container">
-        <!-- Menu Items Column -->
-        <div class="menu-column">
-            <!-- Wraps Section -->
-            <div class="menu-section">
-                <h2>Wrap</h2>
-                <div class="menu-item">
-                    <span class="item-name">Chicken Wrap</span>
-                    <span class="item-price">₹100</span>
-                </div>
-                <div class="menu-item">
-                    <span class="item-name">Falafel Wrap</span>
-                    <span class="item-price">₹80</span>
-                </div>
-                <div class="menu-item">
-                    <span class="item-name">Kebab Wrap</span>
-                    <span class="item-price">₹110</span>
-                </div>
-                <div class="menu-item">
-                    <span class="item-name">Fish Wrap</span>
-                    <span class="item-price">₹110</span>
-                </div>
-                <div class="menu-item">
-                    <span class="item-name">Nugget Wrap</span>
-                    <span class="item-price">₹100</span>
-                </div>
-            </div>
-            <!-- Burgers Section -->
-            <div class="menu-section">
-                <h2>Burger</h2>
-                <div class="menu-item">
-                    <span class="item-name">Chicken Burger</span>
-                    <span class="item-price">₹80</span>
-                </div>
-                <div class="menu-item">
-                    <span class="item-name">Zinger Burger</span>
-                    <span class="item-price">₹100</span>
-                </div>
-                <div class="menu-item">
-                    <span class="item-name">Chicken Double Patty Burger</span>
-                    <span class="item-price">₹160</span>
-                </div>
-                <div class="menu-item">
-                    <span class="item-name">Chicken Cheese Burger</span>
-                    <span class="item-price">₹120</span>
-                </div>
-                <div class="menu-item">
-                    <span class="item-name">Veg Burger</span>
-                    <span class="item-price">₹150</span>
-                </div>
-            </div>
-            <!-- Pizza Section -->
-            <div class="menu-section">
-                <h2>Pizza</h2>
-                <div class="menu-item">
-                    <span class="item-name">Chicken BBQ Pizza</span>
-                    <span class="item-price">₹140</span>
-                </div>
-                <div class="menu-item">
-                    <span class="item-name">Veg Pizza</span>
-                    <span class="item-price">₹120</span>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Welcome to Five Guys!</h1>
+            <a href="#" class="btn">Order Now</a>
+        </div>
+    </section>
+
+    <!-- Menu Section -->
+    <section class="menu">
+        <h2>Our Menu</h2>
+        <div class="menu-grid">
+            <!-- Wraps -->
+            <div class="menu-card" id="wraps">
+                <img src="wrap.jpg" alt="Wraps">
+                <h3>Wraps</h3>
+                <div class="menu-items">
+                    <div class="menu-item">
+                        <div>
+                            <span class="item-name">Chicken Wrap</span>
+                            <p class="item-description">Grilled chicken with lettuce, tomato, and mayo in a soft tortilla.</p>
+                        </div>
+                        <span class="item-price">₹190</span>
+                    </div>
+                    <div class="menu-item">
+                        <div>
+                            <span class="item-name">Falafel Wrap</span>
+                            <p class="item-description">Crispy falafel with hummus, cucumber, and tahini sauce.</p>
+                        </div>
+                        <span class="item-price">₹80</span>
+                    </div>
+                   <!-- <div class="menu-item">
+                        <div>
+                            <span class="item-name">Kebab Wrap</span>
+                            <p class="item-description">Juicy kebabs with onions, tomatoes, and mint chutney.</p>
+                        </div>
+                        <span class="item-price">₹110</span>
+                    </div> -->
+                    <div class="menu-item">
+                        <div>
+                            <span class="item-name">Fish Wrap</span>
+                            <p class="item-description">Breaded fish fillet with tartar sauce and fresh greens.</p>
+                        </div>
+                        <span class="item-price">₹110</span>
+                    </div>
+                    <div class="menu-item">
+                        <div>
+                            <span class="item-name">Nugget Wrap</span>
+                            <p class="item-description">Chicken nuggets with cheese and BBQ sauce in a wrap.</p>
+                        </div>
+                        <span class="item-price">₹100</span>
+                    </div>
                 </div>
             </div>
-            <!-- Sandwich Section -->
-            <div class="menu-section">
-                <h2>Sandwich</h2>
-                <div class="menu-item">
-                    <span class="item-name">Chicken Sandwich</span>
-                    <span class="item-price">₹80</span>
-                </div>
-                <div class="menu-item">
-                    <span class="item-name">Egg Sandwich</span>
-                    <span class="item-price">₹70</span>
-                </div>
-                <div class="menu-item">
-                    <span class="item-name">Veg Sandwich</span>
-                    <span class="item-price">₹60</span>
+            <!-- Burgers -->
+            <div class="menu-card" id="burgers">
+                <img src="BURGER FG.jpg" alt="Burgers">
+                <h3>Burgers</h3>
+                <div class="menu-items">
+                    <div class="menu-item">
+                        <div>
+                            <span class="item-name">Chicken Burger</span>
+                            <p class="item-description">Grilled chicken patty with lettuce and mayo.</p>
+                        </div>
+                        <span class="item-price">₹80</span>
+                    </div>
+                    <div class="menu-item">
+                        <div>
+                            <span class="item-name">Zinger Burger</span>
+                            <p class="item-description">Spicy fried chicken with pepper jack cheese.</p>
+                        </div>
+                        <span class="item-price">₹100</span>
+                    </div>
+                    <div class="menu-item">
+                        <div>
+                            <span class="item-name">Chicken Double Patty Burger</span>
+                            <p class="item-description">Two chicken patties with cheese and special sauce.</p>
+                        </div>
+                        <span class="item-price">₹160</span>
+                    </div>
+                    <div class="menu-item">
+                        <div>
+                            <span class="item-name">Chicken Cheese Burger</span>
+                            <p class="item-description">Chicken patty with melted cheddar and onions.</p>
+                        </div>
+                        <span class="item-price">₹120</span>
+                    </div>
+                    <div class="menu-item">
+                        <div>
+                            <span class="item-name">Veg Burger</span>
+                            <p class="item-description">Veggie patty with lettuce, tomato, and mayo.</p>
+                        </div>
+                        <span class="item-price">₹700</span>
+                    </div>
                 </div>
             </div>
-            <!-- Fries & More Section -->
-            <div class="menu-section">
-                <h2>Fries & More</h2>
-                <div class="menu-item">
-                    <span class="item-name">Crispy Fries</span>
-                    <span class="item-price">₹60</span>
+            <!-- Pizzas 
+            <div class="menu-card" id="pizzas">
+                <img src="pizzas.jpg" alt="Pizzas">
+                <h3>Pizzas</h3>
+                <div class="menu-items">
+                    <div class="menu-item">
+                        <div>
+                            <span class="item-name">Chicken BBQ Pizza</span>
+                            <p class="item-description">BBQ chicken with onions and mozzarella.</p>
+                        </div>
+                        <span class="item-price">₹140</span>
+                    </div>
+                    <div class="menu-item">
+                        <div>
+                            <span class="item-name">Veg Pizza</span>
+                            <p class="item-description">Bell peppers, onions, olives, and cheese.</p>
+                        </div>
+                        <span class="item-price">₹120</span>
+                    </div>
                 </div>
-                <div class="menu-item">
-                    <span class="item-name">Spicy Fries</span>
-                    <span class="item-price">₹80</span>
+            </div>  -->
+            <!-- Sandwiches -->
+            <div class="menu-card" id="sandwiches">
+                <img src="sandwiches.jpg" alt="Sandwiches">
+                <h3>Sandwiches</h3>
+                <div class="menu-items">
+                    <div class="menu-item">
+                        <div>
+                            <span class="item-name">Chicken Sandwich</span>
+                            <p class="item-description">Grilled chicken with mayo and lettuce on toasted bread.</p>
+                        </div>
+                        <span class="item-price">₹80</span>
+                    </div>
+                    <div class="menu-item">
+                        <div>
+                            <span class="item-name">Egg Sandwich</span>
+                            <p class="item-description">Scrambled eggs with cheese and herbs.</p>
+                        </div>
+                        <span class="item-price">₹70</span>
+                    </div>
+                    <div class="menu-item">
+                        <div>
+                            <span class="item-name">Veg Sandwich</span>
+                            <p class="item-description">Fresh veggies with cream cheese spread.</p>
+                        </div>
+                        <span class="item-price">₹60</span>
+                    </div>
                 </div>
-                <div class="menu-item">
-                    <span class="item-name">Cheesy Fries</span>
-                    <span class="item-price">₹100</span>
+            </div>
+            <!-- Chicken Specials -->
+            <div class="menu-card" id="chicken">
+                <img src="FriedChickenTenders.jpg" alt="Chicken Specials">
+                <h3>Chicken Specials</h3>
+                <div class="menu-items">
+                    <div class="menu-item">
+                        <div>
+                            <span class="item-name">Chicken Nuggets (8 Pcs)</span>
+                            <p class="item-description">Crispy chicken nuggets with dipping sauce.</p>
+                        </div>
+                        <span class="item-price">₹120</span>
+                    </div>
+                    <div class="menu-item">
+                        <div>
+                            <span class="item-name">Fried Chicken (6 Pcs)</span>
+                            <p class="item-description">Juicy fried chicken with a crispy coating.</p>
+                        </div>
+                        <span class="item-price">₹250</span>
+                    </div>
+                    <div class="menu-item">
+                        <div>
+                            <span class="item посил: "item-name">Chicken Meal</span>
+                            <p class="item-description">Fried chicken, fries, and a drink combo.</p>
+                        </div>
+                        <span class="item-price">₹250</span>
+                    </div>
                 </div>
-                <div class="menu-item">
-                    <span class="item-name">Peri-Peri Fries</span>
-                    <span class="item-price">₹80</span>
+            </div>
+            <!-- Fries & More -->
+            <div class="menu-card" id="fries">
+                <img src="fries.jpg" alt="Fries & More">
+                <h3>Fries & More</h3>
+                <div class="menu-items">
+                    <div class="menu-item">
+                        <div>
+                            <span class="item-name">Crispy Fries</span>
+                            <p class="item-description">Golden fries with a pinch of salt.</p>
+                        </div>
+                        <span class="item-price">₹60</span>
+                    </div>
+                    <div class="menu-item">
+                        <div>
+                            <span class="item-name">Spicy Fries</span>
+                            <p class="item-description">Fries tossed in spicy seasoning.</p>
+                        </div>
+                        <span class="item-price">₹80</span>
+                    </div>
+                    <div class="menu-item">
+                        <div>
+                            <span class="item-name">Cheesy Fries</span>
+                            <p class="item-description">Fries topped with melted cheese sauce.</p>
+                        </div>
+                        <span class="item-price">₹100</span>
+                    </div>
+                    <div class="menu-item">
+                        <div>
+                            <span class="item-name">Peri-Peri Fries</span>
+                            <p class="item-description">Fries with a tangy peri-peri flavor.</p>
+                        </div>
+                        <span class="item-price">₹80</span>
+                    </div>
+                    <div class="menu-item">
+                        <div>
+                            <span class="item-name">Crispy Nuggets</span>
+                            <p class="item-description">Bite-sized chicken nuggets, crispy outside.</p>
+                        </div>
+                        <span class="item-price">₹80</span>
+                    </div>
+                    <div class="menu-item">
+                        <div>
+                            <span class="item-name">Chicken Loaded Fries</span>
+                            <p class="item-description">Fried chiecken loaded with crispy fries, topped with cheese.</p>
+                        </div>
+                        <span class="item-price">₹140</span>
+                    </div>
                 </div>
-                <div class="menu-item">
-                    <span class="item-name">Crispy Nuggets</span>
-                    <span class="item-price">₹80</span>
+            </div>
+            <!-- Shakes & Juices -->
+            <div class="menu-card" id="shakes">
+                <img src="juice3.jpg" alt="Shakes & Juices">
+                <h3>Shakes & Juices</h3>
+                <div class="menu-items">
+                    <div class="menu-item">
+                        <div>
+                            <span class="item-name">Chocolate Milkshake</span>
+                            <p class="item-description">Rich chocolate shake topped with whipped cream.</p>
+                        </div>
+                        <span class="item-price">₹90</span>
+                    </div>
+                    <div class="menu-item">
+                        <div>
+                            <span class="item-name">Vanilla Milkshake</span>
+                            <p class="item-description">Creamy vanilla shake with a smooth finish.</p>
+                        </div>
+                        <span class="item-price">₹90</span>
+                    </div>
+                    <div class="menu-item">
+                        <div>
+                            <span class="item-name">Mango Juice</span>
+                            <p class="item-description">Freshly squeezed mango juice, refreshing.</p>
+                        </div>
+                        <span class="item-price">₹70</span>
+                    </div>
+                    <div class="menu-item">
+                        <div>
+                            <span class="item-name">Orange Juice</span>
+                            <p class="item-description">Fresh orange juice, packed with vitamin C.</p>
+                        </div>
+                        <span class="item-price">₹70</span>
+                    </div>
+                    <div class="menu-item">
+                        <div>
+                            <span class="item-name">Pineapple Juice</span>
+                            <p class="item-description">Sweet and tangy pineapple juice, freshly made.</p>
+                        </div>
+                        <span class="item-price">₹70</span>
+                    </div>
+                    <div class="menu-item">
+                        <div>
+                            <span class="item-name">Watermelon Juice</span>
+                            <p class="item-description">Cool and hydrating watermelon juice.</p>
+                        </div>
+                        <span class="item-price">₹70</span>
+                    </div>
+                    <div class="menu-item">
+                        <div>
+                            <span class="item-name">Banana Juice</span>
+                            <p class="item-description">Creamy banana juice, rich in potassium.</p>
+                        </div>
+                        <span class="item-price">₹70</span>
+                    </div>
+                    <div class="menu-item">
+                        <div>
+                            <span class="item-name">Pomegranate Juice</span>
+                            <p class="item-description">Antioxidant-rich pomegranate juice, freshly squeezed.</p>
+                        </div>
+                        <span class="item-price">₹80</span>
+                    </div>
+                    <div class="menu-item">
+                        <div>
+                            <span class="item-name">Muskmelon Juice</span>
+                            <p class="item-description">Sweet muskmelon juice, perfect for a refreshing break.</p>
+                        </div>
+                        <span class="item-price">₹70</span>
+                    </div>
+                    <div class="menu-item">
+                        <div>
+                            <span class="item-name">Sapota Juice</span>
+                            <p class="item-description">Smooth sapota (chikoo) juice, naturally sweet.</p>
+                        </div>
+                        <span class="item-price">₹70</span>
+                    </div>
+                    <div class="menu-item">
+                        <div>
+                            <span class="item-name">Grape Juice</span>
+                            <p class="item-description">Fresh grape juice, sweet and tangy.</p>
+                        </div>
+                        <span class="item-price">₹70</span>
+                    </div>
+                    <div class="menu-item">
+                        <div>
+                            <span class="item-name">Strawberry Juice</span>
+                            <p class="item-description">Juicy strawberry juice, bursting with flavor.</p>
+                        </div>
+                        <span class="item-price">₹80</span>
+                    </div>
+                    <div class="menu-item">
+                        <div>
+                            <span class="item-name">Avocado Juice</span>
+                            <p class="item-description">Creamy avocado juice, rich and nutritious.</p>
+                        </div>
+                        <span class="item-price">₹90</span>
+                    </div>
                 </div>
-                <div class="menu-item">
-                    <span class="item-name">Golden Nuggets</span>
-                    <span class="item-price">₹100</span>
+            </div>
+            <!-- Signature Juices -->
+            <div class="menu-card" id="signature-juices">
+                <img src="YEMINI JUICE.jpg" alt="Signature Juices">
+                <h3>Signature Juices</h3>
+                <div class="menu-items">
+                    <div class="menu-item">
+                        <div>
+                            <span class="item-name">Yemeni Style All Mix Fruit Juice</span>
+                            <p class="item-description">A vibrant mix of tropical fruits with a Yemeni twist.</p>
+                        </div>
+                        <span class="item-price">₹120</span>
+                    </div>
+                    <div class="menu-item">
+                        <div>
+                            <span class="item-name">Strength Booster Dry Fruit Juice</span>
+                            <p class="item-description">A nutritious blend of dry fruits and juices for energy.</p>
+                        </div>
+                        <span class="item-price">₹130</span>
+                    </div>
+                    <div class="menu-item">
+                        <div>
+                            <span class="item-name">Mango Malai</span>
+                            <p class="item-description">Mango juice with a creamy malai topping, rich and indulgent.</p>
+                        </div>
+                        <span class="item-price">₹80</span>
+                    </div>
+                    <div class="menu-item">
+                        <div>
+                            <span class="item-name">Crunchy Creamy Badam Milk</span>
+                            <p class="item-description">Almond milk with a crunchy twist, creamy and delicious.</p>
+                        </div>
+                        <span class="item-price">₹60</span>
+                    </div>
                 </div>
             </div>
         </div>
-        <!-- Image Column -->
-        <div class="image-column">
-            <img src="wrap.jpg" alt="Chicken Wrap">
-            <img src="BURGER FG.jpg" alt="Chicken Burger">
-            <img src="BADAM.jpg" alt="Chicken BBQ Pizza">
-            <img src="juice3.jpg" alt="Chicken Sandwich">
-            <img src="YEMENI JUICE.jpg" alt="Cheesy Fries">
-        </div>
-    </div>
+    </section>
+
+    <!-- Back to Top Button -->
+    <a href="#" class="back-to-top" id="back-to-top">↑</a>
+
+    <!-- Footer -->
+    <footer>
+        <p>Golden Heights, Attapur, Hyderabad</p>
+        <p>Contact: +91 123-456-7890</p>
+        <p>© 2025 Five Guys. All rights reserved.</p>
+        <p><a href="#">Contact Us</a> | <a href="#">Locations</a> | <a href="#">Privacy Policy</a></p>
+    </footer>
+
+    <!-- JavaScript for Back to Top -->
+    <script>
+        // Back to Top Button
+        const backToTop = document.getElementById('back-to-top');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 300) {
+                backToTop.style.display = 'block';
+            } else {
+                backToTop.style.display = 'none';
+            }
+        });
+    </script>
 </body>
 </html>
